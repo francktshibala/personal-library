@@ -201,7 +201,7 @@ exports.deleteAuthor = async (req, res) => {
       });
     }
     
-    await author.remove();
+    await Author.findByIdAndDelete(id);
     
     res.status(200).json({
       success: true,

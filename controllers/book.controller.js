@@ -200,7 +200,7 @@ exports.deleteBook = async (req, res) => {
       });
     }
     
-    const book = await Book.findById(id);
+    const book = await Book.findByIdAndDelete(id);
     
     if (!book) {
       return res.status(404).json({
@@ -208,12 +208,6 @@ exports.deleteBook = async (req, res) => {
         error: 'Book not found'
       });
     }
-    
-    // Check if book has active loans
-    // This would require checking the LoanRecord model
-    // For now, we'll assume we can delete it
-    
-    await book.remove();
     
     res.status(200).json({
       success: true,
