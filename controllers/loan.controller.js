@@ -284,7 +284,8 @@ exports.deleteLoan = async (req, res) => {
       }
     }
     
-    await loan.remove();
+    // This is the line that was changed from loan.remove() to findByIdAndDelete
+    await LoanRecord.findByIdAndDelete(id);
     
     res.status(200).json({
       success: true,
