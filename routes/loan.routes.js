@@ -4,6 +4,7 @@ const loanController = require('../controllers/loan.controller');
 
 // Middleware for validating requests
 const { validateLoan } = require('../middleware/validation');
+const { protect, authorize } = require('../middleware/auth');
 
 // @route   GET /api/loans
 // @desc    Get all loan records with filtering and pagination

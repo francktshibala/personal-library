@@ -20,6 +20,10 @@
   ],
   "tags": [
     {
+      "name": "Authentication",
+      "description": "Operations related to user authentication"
+    },
+    {
       "name": "Books",
       "description": "Operations related to books"
     },

@@ -4,6 +4,7 @@ const bookController = require('../controllers/book.controller');
 
 // Middleware for validating requests
 const { validateBook } = require('../middleware/validation');
+const { protect, authorize } = require('../middleware/auth');
 
 // @route   GET /api/books
 // @desc    Get all books with filtering and pagination

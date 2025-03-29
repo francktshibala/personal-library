@@ -4,6 +4,7 @@ const authorController = require('../controllers/author.controller');
 
 // Middleware for validating requests
 const { validateAuthor } = require('../middleware/validation');
+const { protect, authorize } = require('../middleware/auth');
 
 // @route   GET /api/authors
 // @desc    Get all authors with filtering and pagination
