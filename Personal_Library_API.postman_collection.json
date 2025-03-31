@@ -1,0 +1,471 @@
+{
+    "info": {
+      "_postman_id": "b7e0a1d7-5e9b-4bbd-bf84-c8f7e89e5ea2",
+      "name": "Personal Library API",
+      "description": "A collection of API endpoints for the Personal Library Management API.",
+      "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+      {
+        "name": "Authentication",
+        "item": [
+          {
+            "name": "Register",
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"username\": \"testuser\",\n    \"email\": \"test@example.com\",\n    \"password\": \"password123\"\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/auth/register",
+                "host": ["{{base_url}}"],
+                "path": ["auth", "register"]
+              },
+              "description": "Register a new user."
+            },
+            "response": []
+          },
+          {
+            "name": "Login",
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"email\": \"test@example.com\",\n    \"password\": \"password123\"\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/auth/login",
+                "host": ["{{base_url}}"],
+                "path": ["auth", "login"]
+              },
+              "description": "Login with email and password."
+            },
+            "response": []
+          },
+          {
+            "name": "Get Current User",
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{auth_token}}"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/auth/me",
+                "host": ["{{base_url}}"],
+                "path": ["auth", "me"]
+              },
+              "description": "Get the currently logged-in user."
+            },
+            "response": []
+          }
+        ],
+        "description": "Authentication endpoints"
+      },
+      {
+        "name": "Books",
+        "item": [
+          {
+            "name": "Get All Books",
+            "request": {
+              "method": "GET",
+              "header": [],
+              "url": {
+                "raw": "{{base_url}}/books?genre=Fiction&readStatus=Read&page=1&limit=10",
+                "host": ["{{base_url}}"],
+                "path": ["books"],
+                "query": [
+                  { "key": "genre", "value": "Fiction" },
+                  { "key": "readStatus", "value": "Read" },
+                  { "key": "page", "value": "1" },
+                  { "key": "limit", "value": "10" }
+                ]
+              },
+              "description": "Get all books with optional filtering."
+            },
+            "response": []
+          },
+          {
+            "name": "Get Book by ID",
+            "request": {
+              "method": "GET",
+              "header": [],
+              "url": {
+                "raw": "{{base_url}}/books/{{book_id}}",
+                "host": ["{{base_url}}"],
+                "path": ["books", "{{book_id}}"]
+              },
+              "description": "Get a single book by ID."
+            },
+            "response": []
+          },
+          {
+            "name": "Create Book",
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{auth_token}}"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"title\": \"The Great Gatsby\",\n    \"author\": \"{{author_id}}\",\n    \"genre\": \"Classic\",\n    \"isbn\": \"978-3-16-148410-0\",\n    \"publicationDate\": \"1925-04-10\",\n    \"pages\": 180,\n    \"format\": \"Paperback\",\n    \"personalRating\": 4.5,\n    \"readStatus\": \"Read\",\n    \"notes\": \"A classic American novel\"\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/books",
+                "host": ["{{base_url}}"],
+                "path": ["books"]
+              },
+              "description": "Create a new book."
+            },
+            "response": []
+          },
+          {
+            "name": "Update Book",
+            "request": {
+              "method": "PUT",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{auth_token}}"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"title\": \"The Great Gatsby\",\n    \"author\": \"{{author_id}}\",\n    \"genre\": \"Classic\",\n    \"isbn\": \"978-3-16-148410-0\",\n    \"publicationDate\": \"1925-04-10\",\n    \"pages\": 180,\n    \"format\": \"Hardcover\",\n    \"personalRating\": 5,\n    \"readStatus\": \"Read\",\n    \"notes\": \"A classic American novel set in the 1920s\"\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/books/{{book_id}}",
+                "host": ["{{base_url}}"],
+                "path": ["books", "{{book_id}}"]
+              },
+              "description": "Update an existing book."
+            },
+            "response": []
+          },
+          {
+            "name": "Delete Book",
+            "request": {
+              "method": "DELETE",
+              "header": [
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{auth_token}}"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/books/{{book_id}}",
+                "host": ["{{base_url}}"],
+                "path": ["books", "{{book_id}}"]
+              },
+              "description": "Delete a book."
+            },
+            "response": []
+          }
+        ],
+        "description": "Book management endpoints"
+      },
+      {
+        "name": "Authors",
+        "item": [
+          {
+            "name": "Get All Authors",
+            "request": {
+              "method": "GET",
+              "header": [],
+              "url": {
+                "raw": "{{base_url}}/authors?nationality=American&page=1&limit=10",
+                "host": ["{{base_url}}"],
+                "path": ["authors"],
+                "query": [
+                  { "key": "nationality", "value": "American" },
+                  { "key": "page", "value": "1" },
+                  { "key": "limit", "value": "10" }
+                ]
+              },
+              "description": "Get all authors with optional filtering."
+            },
+            "response": []
+          },
+          {
+            "name": "Get Author by ID",
+            "request": {
+              "method": "GET",
+              "header": [],
+              "url": {
+                "raw": "{{base_url}}/authors/{{author_id}}",
+                "host": ["{{base_url}}"],
+                "path": ["authors", "{{author_id}}"]
+              },
+              "description": "Get a single author by ID with their books."
+            },
+            "response": []
+          },
+          {
+            "name": "Create Author",
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{auth_token}}"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"name\": \"F. Scott Fitzgerald\",\n    \"biography\": \"American novelist and short-story writer\",\n    \"birthDate\": \"1896-09-24\",\n    \"deathDate\": \"1940-12-21\",\n    \"nationality\": \"American\",\n    \"genres\": [\"Fiction\", \"Classic\"]\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/authors",
+                "host": ["{{base_url}}"],
+                "path": ["authors"]
+              },
+              "description": "Create a new author."
+            },
+            "response": []
+          },
+          {
+            "name": "Update Author",
+            "request": {
+              "method": "PUT",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{auth_token}}"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"name\": \"F. Scott Fitzgerald\",\n    \"biography\": \"American novelist and short-story writer, best known for The Great Gatsby\",\n    \"birthDate\": \"1896-09-24\",\n    \"deathDate\": \"1940-12-21\",\n    \"nationality\": \"American\",\n    \"genres\": [\"Fiction\", \"Classic\", \"Novel\"]\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/authors/{{author_id}}",
+                "host": ["{{base_url}}"],
+                "path": ["authors", "{{author_id}}"]
+              },
+              "description": "Update an existing author."
+            },
+            "response": []
+          },
+          {
+            "name": "Delete Author",
+            "request": {
+              "method": "DELETE",
+              "header": [
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{auth_token}}"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/authors/{{author_id}}",
+                "host": ["{{base_url}}"],
+                "path": ["authors", "{{author_id}}"]
+              },
+              "description": "Delete an author (fails if author has books)."
+            },
+            "response": []
+          }
+        ],
+        "description": "Author management endpoints"
+      },
+      {
+        "name": "Loans",
+        "item": [
+          {
+            "name": "Get All Loans",
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{auth_token}}"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/loans?status=Active&page=1&limit=10",
+                "host": ["{{base_url}}"],
+                "path": ["loans"],
+                "query": [
+                  { "key": "status", "value": "Active" },
+                  { "key": "page", "value": "1" },
+                  { "key": "limit", "value": "10" }
+                ]
+              },
+              "description": "Get all loan records with optional filtering."
+            },
+            "response": []
+          },
+          {
+            "name": "Get Loan by ID",
+            "request": {
+              "method": "GET",
+              "header": [
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{auth_token}}"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/loans/{{loan_id}}",
+                "host": ["{{base_url}}"],
+                "path": ["loans", "{{loan_id}}"]
+              },
+              "description": "Get a single loan by ID."
+            },
+            "response": []
+          },
+          {
+            "name": "Create Loan",
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{auth_token}}"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"book\": \"{{book_id}}\",\n    \"borrowerName\": \"John Doe\",\n    \"borrowerEmail\": \"john@example.com\",\n    \"dueDate\": \"2023-12-31\",\n    \"notes\": \"Promised to return before New Year's\"\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/loans",
+                "host": ["{{base_url}}"],
+                "path": ["loans"]
+              },
+              "description": "Create a new loan record."
+            },
+            "response": []
+          },
+          {
+            "name": "Update Loan (Mark as Returned)",
+            "request": {
+              "method": "PUT",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{auth_token}}"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"status\": \"Returned\",\n    \"returnDate\": \"2023-12-15\",\n    \"notes\": \"Returned in good condition\"\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/loans/{{loan_id}}",
+                "host": ["{{base_url}}"],
+                "path": ["loans", "{{loan_id}}"]
+              },
+              "description": "Update a loan record (e.g., mark as returned)."
+            },
+            "response": []
+          },
+          {
+            "name": "Delete Loan",
+            "request": {
+              "method": "DELETE",
+              "header": [
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{auth_token}}"
+                }
+              ],
+              "url": {
+                "raw": "{{base_url}}/loans/{{loan_id}}",
+                "host": ["{{base_url}}"],
+                "path": ["loans", "{{loan_id}}"]
+              },
+              "description": "Delete a loan record."
+            },
+            "response": []
+          }
+        ],
+        "description": "Loan management endpoints"
+      }
+    ],
+    "event": [
+      {
+        "listen": "prerequest",
+        "script": {
+          "type": "text/javascript",
+          "exec": [""]
+        }
+      },
+      {
+        "listen": "test",
+        "script": {
+          "type": "text/javascript",
+          "exec": [""]
+        }
+      }
+    ],
+    "variable": [
+      {
+        "key": "base_url",
+        "value": "http://localhost:3000/api",
+        "type": "string"
+      },
+      {
+        "key": "auth_token",
+        "value": "your_jwt_token_here",
+        "type": "string"
+      },
+      {
+        "key": "book_id",
+        "value": "book_id_here",
+        "type": "string"
+      },
+      {
+        "key": "author_id",
+        "value": "author_id_here",
+        "type": "string"
+      },
+      {
+        "key": "loan_id",
+        "value": "loan_id_here",
+        "type": "string"
+      }
+    ]
+  }

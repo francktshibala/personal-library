@@ -1,166 +1,222 @@
-const User = require('../models/user.model');
-const jwt = require('jsonwebtoken');
-const passport = require('passport');
+const Author = require('../models/author.model');
+const Book = require('../models/book.model');
+const mongoose = require('mongoose');
+const { asyncHandler } = require('../utils/errorHandler');
 
-// Generate JWT token
-const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRE,
+// Create a new author
+exports.createAuthor = asyncHandler(async (req, res) => {
+  const author = new Author(req.body);
+  const savedAuthor = await author.save();
+  
+  res.status(201).json({
+    success: true,
+    data: savedAuthor
   });
-};
+});
 
-// Register a new user
-exports.register = async (req, res) => {
-  try {
-    const { username, email, password } = req.body;
-
-    // Check if user already exists
-    const existingUser = await User.findOne({ $or: [{ email }, { username }] });
-
-    if (existingUser) {
-      return res.status(400).json({
-        success: false,
-        error: 'User with that email or username already exists',
-      });
-    }
-
-    // Create new user
-    const user = await User.create({
-      username,
-      email,
-      password,
-      authMethod: 'local',
-    });
-
-    // Generate token
-    const token = generateToken(user._id);
-
-    res.status(201).json({
-      success: true,
-      token,
-      data: {
-        _id: user._id,
-        username: user.username,
-        email: user.email,
-        role: user.role,
-      },
-    });
-  } catch (err) {
-    if (err.name === 'ValidationError') {
-      const messages = Object.values(err.errors).map((error) => error.message);
-
-      return res.status(400).json({
-        success: false,
-        error: messages,
-      });
-    } else {
-      return res.status(500).json({
-        success: false,
-        error: 'Server Error',
-      });
-    }
+// Get all authors with filtering and pagination
+exports.getAuthors = asyncHandler(async (req, res) => {
+  // Build query
+  let query = {};
+  
+  // Filter by nationality
+  if (req.query.nationality) {
+    query.nationality = req.query.nationality;
   }
-};
-
-// Login user with email/password
-exports.login = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-
-    // Check if email and password are provided
-    if (!email || !password) {
-      return res.status(400).json({
-        success: false,
-        error: 'Please provide email and password',
-      });
-    }
-
-    // Find user with email and include password
-    const user = await User.findOne({ email }).select('+password');
-
-    // Check if user exists and is using local auth
-    if (!user || user.authMethod !== 'local') {
-      return res.status(401).json({
-        success: false,
-        error: 'Invalid credentials',
-      });
-    }
-
-    // Check if password matches
-    const isMatch = await user.comparePassword(password);
-
-    if (!isMatch) {
-      return res.status(401).json({
-        success: false,
-        error: 'Invalid credentials',
-      });
-    }
-
-    // Generate token
-    const token = generateToken(user._id);
-
-    res.status(200).json({
-      success: true,
-      token,
-      data: {
-        _id: user._id,
-        username: user.username,
-        email: user.email,
-        role: user.role,
-      },
-    });
-  } catch (err) {
-    res.status(500).json({
-      success: false,
-      error: 'Server Error',
-    });
+  
+  // Text search by name
+  if (req.query.search) {
+    query.$text = { $search: req.query.search };
   }
-};
-
-// Google OAuth login route
-exports.googleAuth = passport.authenticate('google', { scope: ['profile', 'email'] });
-
-// Google OAuth callback
-exports.googleCallback = (req, res, next) => {
-  passport.authenticate('google', { session: false }, (err, user, info) => {
-    if (err) {
-      return next(err);
-    }
-
-    if (!user) {
-      return res.redirect('/?error=auth_failed');
-    }
-
-    // Generate token
-    const token = generateToken(user._id);
-
-    // Redirect to a success page with the token
-    res.redirect(`/dashboard?token=${token}`);
-  })(req, res, next);
-};
-
-// Get current logged in user
-exports.getMe = async (req, res) => {
-  try {
-    // User is already available in req.user from auth middleware
-    const user = await User.findById(req.user.id);
-
-    res.status(200).json({
-      success: true,
-      data: user,
-    });
-  } catch (err) {
-    res.status(500).json({
-      success: false,
-      error: 'Server Error',
-    });
-  }
-};
-
-// Logout (for frontend, as JWT is stateless)
-exports.logout = (req, res) => {
+  
+  // Pagination
+  const page = parseInt(req.query.page, 10) || 1;
+  const limit = parseInt(req.query.limit, 10) || 10;
+  const startIndex = (page - 1) * limit;
+  
+  // Execute query
+  const authors = await Author.find(query)
+    .skip(startIndex)
+    .limit(limit)
+    .sort({ name: 1 });
+  
+  const total = await Author.countDocuments(query);
+  
   res.status(200).json({
     success: true,
-    message: 'Successfully logged out. Token should be removed on client side.',
+    count: authors.length,
+    total,
+    pagination: {
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit)
+    },
+    data: authors
   });
-};
+});
+
+// Get a single author by ID with their books
+exports.getAuthorById = asyncHandler(async (req, res) => {
+  const id = req.params.id;
+  
+  // Validate if id is a valid MongoDB ObjectId
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({
+      success: false,
+      error: 'Invalid author ID format'
+    });
+  }
+  
+  const author = await Author.findById(id);
+  
+  if (!author) {
+    return res.status(404).json({
+      success: false,
+      error: 'Author not found'
+    });
+  }
+  
+  // Get author's books
+  const books = await Book.find({ author: id }).select('title publicationDate genre personalRating readStatus');
+  
+  res.status(200).json({
+    success: true,
+    data: {
+      ...author._doc,
+      books
+    }
+  });
+});
+
+// Update an author
+exports.updateAuthor = asyncHandler(async (req, res) => {
+  const id = req.params.id;
+  
+  // Validate if id is a valid MongoDB ObjectId
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({
+      success: false,
+      error: 'Invalid author ID format'
+    });
+  }
+  
+  // Find author and update it
+  const author = await Author.findByIdAndUpdate(
+    id, 
+    req.body, 
+    { 
+      new: true,  // Return the updated document
+      runValidators: true  // Run model validators
+    }
+  );
+  
+  if (!author) {
+    return res.status(404).json({
+      success: false,
+      error: 'Author not found'
+    });
+  }
+  
+  res.status(200).json({
+    success: true,
+    data: author
+  });
+});
+
+// Delete an author
+exports.deleteAuthor = asyncHandler(async (req, res) => {
+  const id = req.params.id;
+  
+  // Validate if id is a valid MongoDB ObjectId
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({
+      success: false,
+      error: 'Invalid author ID format'
+    });
+  }
+  
+  // Check if author exists
+  const author = await Author.findById(id);
+  
+  if (!author) {
+    return res.status(404).json({
+      success: false,
+      error: 'Author not found'
+    });
+  }
+  
+  // Check if author has books
+  const bookCount = await Book.countDocuments({ author: id });
+  
+  if (bookCount > 0) {
+    return res.status(400).json({
+      success: false,
+      error: `Cannot delete author with ${bookCount} books. Remove the books first or reassign them to another author.`
+    });
+  }
+  
+  await Author.findByIdAndDelete(id);
+  
+  res.status(200).json({
+    success: true,
+    data: {}
+  });
+});
+
+// Get author statistics
+exports.getAuthorStats = asyncHandler(async (req, res) => {
+  // Get nationalities distribution
+  const nationalities = await Author.aggregate([
+    {
+      $group: {
+        _id: '$nationality',
+        count: { $sum: 1 }
+      }
+    },
+    {
+      $sort: { count: -1 }
+    }
+  ]);
+  
+  // Get authors with most books
+  const authorsByBookCount = await Book.aggregate([
+    {
+      $group: {
+        _id: '$author',
+        bookCount: { $sum: 1 }
+      }
+    },
+    {
+      $sort: { bookCount: -1 }
+    },
+    {
+      $limit: 5
+    },
+    {
+      $lookup: {
+        from: 'authors',
+        localField: '_id',
+        foreignField: '_id',
+        as: 'authorDetails'
+      }
+    },
+    {
+      $unwind: '$authorDetails'
+    },
+    {
+      $project: {
+        _id: 0,
+        name: '$authorDetails.name',
+        bookCount: 1
+      }
+    }
+  ]);
+  
+  res.status(200).json({
+    success: true,
+    data: {
+      nationalities,
+      authorsByBookCount
+    }
+  });
+});

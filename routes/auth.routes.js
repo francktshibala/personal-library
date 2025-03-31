@@ -1,5 +1,5 @@
 const express = require('express');
-const passport = require('passport'); // Import passport
+const passport = require('passport');
 const router = express.Router();
 const authController = require('../controllers/auth.controller');
 const { protect, validateRegister, validateLogin } = require('../middleware/auth');
@@ -27,21 +27,11 @@ router.get('/logout', authController.logout);
 // @route   GET /api/auth/google
 // @desc    Authenticate with Google
 // @access  Public
-router.get(
-  '/google',
-  passport.authenticate('google', { scope: ['profile', 'email'] }) // Use passport to authenticate
-);
+router.get('/google', authController.googleAuth);
 
 // @route   GET /api/auth/google/callback
 // @desc    Google auth callback
 // @access  Public
-router.get(
-  '/google/callback',
-  passport.authenticate('google', { failureRedirect: '/' }), // Handle Google callback
-  (req, res) => {
-    // Successful authentication
-    res.redirect('/dashboard'); // Redirect to your desired route
-  }
-);
+router.get('/google/callback', authController.googleCallback);
 
 module.exports = router;
