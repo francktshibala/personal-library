@@ -1,47 +1,9 @@
-const jwt = require('jsonwebtoken');
+const passport = require('passport');
 const User = require('../models/user.model');
 const validator = require('validator');
 
-// Protect routes middleware
-exports.protect = async (req, res, next) => {
-  let token;
-  
-  // Check if authorization header exists and starts with Bearer
-  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-    // Extract token
-    token = req.headers.authorization.split(' ')[1];
-  }
-  
-  // Check if token exists
-  if (!token) {
-    return res.status(401).json({
-      success: false,
-      error: 'Not authorized to access this route'
-    });
-  }
-  
-  try {
-    // Verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    
-    // Find user by id
-    req.user = await User.findById(decoded.id);
-    
-    if (!req.user) {
-      return res.status(401).json({
-        success: false,
-        error: 'User not found'
-      });
-    }
-    
-    next();
-  } catch (err) {
-    return res.status(401).json({
-      success: false,
-      error: 'Not authorized to access this route'
-    });
-  }
-};
+// Protect routes middleware using Passport JWT strategy
+exports.protect = passport.authenticate('jwt', { session: false });
 
 // Validate user registration data
 exports.validateRegister = (req, res, next) => {

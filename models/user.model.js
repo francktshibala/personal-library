@@ -20,23 +20,43 @@ const userSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: [true, 'Password is required'],
     minlength: [6, 'Password must be at least 6 characters'],
     select: false // Don't return password in queries by default
+  },
+  googleId: {
+    type: String,
+    unique: true,
+    sparse: true
   },
   role: {
     type: String,
     enum: ['user', 'admin'],
     default: 'user'
+  },
+  picture: {
+    type: String
+  },
+  authMethod: {
+    type: String,
+    enum: ['local', 'google'],
+    default: 'local'
   }
 }, {
   timestamps: true
 });
 
+// Make password required only if auth method is local
+userSchema.pre('validate', function(next) {
+  if (this.authMethod === 'local' && !this.password) {
+    this.invalidate('password', 'Password is required for local authentication');
+  }
+  next();
+});
+
 // Hash password before saving
 userSchema.pre('save', async function(next) {
-  // Only hash the password if it's modified or new
-  if (!this.isModified('password')) {
+  // Only hash the password if it's modified or new and using local auth
+  if (!this.isModified('password') || this.authMethod !== 'local') {
     return next();
   }
   
@@ -54,6 +74,9 @@ userSchema.pre('save', async function(next) {
 
 // Method to compare passwords
 userSchema.methods.comparePassword = async function(candidatePassword) {
+  if (this.authMethod !== 'local') {
+    return false;
+  }
   return await bcrypt.compare(candidatePassword, this.password);
 };
 
