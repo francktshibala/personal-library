@@ -18,1035 +18,32 @@
       "description": "Production server"
     }
   ],
-  "tags": [
-    {
-      "name": "Authentication",
-      "description": "Operations related to user authentication"
-    },
-    {
-      "name": "Books",
-      "description": "Operations related to books"
-    },
-    {
-      "name": "Authors",
-      "description": "Operations related to authors"
-    },
-    {
-      "name": "Loans",
-      "description": "Operations related to loan records"
-    }
-  ],
-  "paths": {
-    "/books": {
-      "get": {
-        "tags": ["Books"],
-        "summary": "Get all books",
-        "description": "Get all books with optional filtering and pagination",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "genre",
-            "schema": { "type": "string" },
-            "description": "Filter by genre"
-          },
-          {
-            "in": "query",
-            "name": "readStatus",
-            "schema": { "type": "string", "enum": ["Read", "Currently Reading", "To Read"] },
-            "description": "Filter by read status"
-          },
-          {
-            "in": "query",
-            "name": "isAvailable",
-            "schema": { "type": "boolean" },
-            "description": "Filter by availability status"
-          },
-          {
-            "in": "query",
-            "name": "search",
-            "schema": { "type": "string" },
-            "description": "Text search in title and genre"
-          },
-          {
-            "in": "query",
-            "name": "minRating",
-            "schema": { "type": "integer", "minimum": 1, "maximum": 5 },
-            "description": "Filter by minimum rating"
-          },
-          {
-            "in": "query",
-            "name": "page",
-            "schema": { "type": "integer", "default": 1 },
-            "description": "Page number for pagination"
-          },
-          {
-            "in": "query",
-            "name": "limit",
-            "schema": { "type": "integer", "default": 10 },
-            "description": "Number of items per page"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "A list of books",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": { "type": "boolean" },
-                    "count": { "type": "integer" },
-                    "total": { "type": "integer" },
-                    "pagination": { 
-                      "type": "object",
-                      "properties": {
-                        "page": { "type": "integer" },
-                        "limit": { "type": "integer" },
-                        "totalPages": { "type": "integer" }
-                      }
-                    },
-                    "data": {
-                      "type": "array",
-                      "items": { "$ref": "#/components/schemas/Book" }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Server error",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "tags": ["Books"],
-        "summary": "Create a new book",
-        "description": "Add a new book to the library",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/BookInput" }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Book created successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": { "type": "boolean" },
-                    "data": { "$ref": "#/components/schemas/Book" }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Validation error",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
-              }
-            }
-          },
-          "500": {
-            "description": "Server error",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/books/{id}": {
-      "get": {
-        "tags": ["Books"],
-        "summary": "Get a book by ID",
-        "description": "Get a single book by its ID",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": { "type": "string" },
-            "description": "Book ID"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Book found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": { "type": "boolean" },
-                    "data": { "$ref": "#/components/schemas/Book" }
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Book not found",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
-              }
-            }
-          },
-          "500": {
-            "description": "Server error",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
-              }
-            }
-          }
-        }
-      },
-      "put": {
-        "tags": ["Books"],
-        "summary": "Update a book",
-        "description": "Update a book's information",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": { "type": "string" },
-            "description": "Book ID"
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/BookInput" }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Book updated successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": { "type": "boolean" },
-                    "data": { "$ref": "#/components/schemas/Book" }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Validation error",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
-              }
-            }
-          },
-          "404": {
-            "description": "Book not found",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
-              }
-            }
-          },
-          "500": {
-            "description": "Server error",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "tags": ["Books"],
-        "summary": "Delete a book",
-        "description": "Remove a book from the library",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": { "type": "string" },
-            "description": "Book ID"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Book deleted successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": { "type": "boolean" },
-                    "data": { "type": "object" }
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Book not found",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
-              }
-            }
-          },
-          "500": {
-            "description": "Server error",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/books/stats": {
-      "get": {
-        "tags": ["Books"],
-        "summary": "Get book statistics",
-        "description": "Get statistics about the book collection",
-        "responses": {
-          "200": {
-            "description": "Book statistics",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": { "type": "boolean" },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "summary": {
-                          "type": "object",
-                          "properties": {
-                            "totalBooks": { "type": "integer" },
-                            "avgRating": { "type": "number" },
-                            "readBooks": { "type": "integer" },
-                            "currentlyReading": { "type": "integer" },
-                            "toRead": { "type": "integer" },
-                            "avgPages": { "type": "number" }
-                          }
-                        },
-                        "genres": {
-                          "type": "array",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "_id": { "type": "string" },
-                              "count": { "type": "integer" }
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Server error",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/authors": {
-      "get": {
-        "tags": ["Authors"],
-        "summary": "Get all authors",
-        "description": "Get all authors with optional filtering and pagination",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "nationality",
-            "schema": { "type": "string" },
-            "description": "Filter by nationality"
-          },
-          {
-            "in": "query",
-            "name": "search",
-            "schema": { "type": "string" },
-            "description": "Text search in author name"
-          },
-          {
-            "in": "query",
-            "name": "page",
-            "schema": { "type": "integer", "default": 1 },
-            "description": "Page number for pagination"
-          },
-          {
-            "in": "query",
-            "name": "limit",
-            "schema": { "type": "integer", "default": 10 },
-            "description": "Number of items per page"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "A list of authors",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": { "type": "boolean" },
-                    "count": { "type": "integer" },
-                    "total": { "type": "integer" },
-                    "pagination": { 
-                      "type": "object",
-                      "properties": {
-                        "page": { "type": "integer" },
-                        "limit": { "type": "integer" },
-                        "totalPages": { "type": "integer" }
-                      }
-                    },
-                    "data": {
-                      "type": "array",
-                      "items": { "$ref": "#/components/schemas/Author" }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Server error",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "tags": ["Authors"],
-        "summary": "Create a new author",
-        "description": "Add a new author to the database",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/AuthorInput" }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Author created successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": { "type": "boolean" },
-                    "data": { "$ref": "#/components/schemas/Author" }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Validation error",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
-              }
-            }
-          },
-          "500": {
-            "description": "Server error",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/authors/{id}": {
-      "get": {
-        "tags": ["Authors"],
-        "summary": "Get an author by ID",
-        "description": "Get a single author by ID with their books",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": { "type": "string" },
-            "description": "Author ID"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Author found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": { "type": "boolean" },
-                    "data": {
-                      "allOf": [
-                        { "$ref": "#/components/schemas/Author" },
-                        {
-                          "type": "object",
-                          "properties": {
-                            "books": {
-                              "type": "array",
-                              "items": {
-                                "type": "object",
-                                "properties": {
-                                  "title": { "type": "string" },
-                                  "publicationDate": { "type": "string", "format": "date-time" },
-                                  "genre": { "type": "string" },
-                                  "personalRating": { "type": "number" },
-                                  "readStatus": { "type": "string" }
-                                }
-                              }
-                            }
-                          }
-                        }
-                      ]
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Author not found",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
-              }
-            }
-          },
-          "500": {
-            "description": "Server error",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
-              }
-            }
-          }
-        }
-      },
-      "put": {
-        "tags": ["Authors"],
-        "summary": "Update an author",
-        "description": "Update an author's information",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": { "type": "string" },
-            "description": "Author ID"
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/AuthorInput" }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Author updated successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": { "type": "boolean" },
-                    "data": { "$ref": "#/components/schemas/Author" }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Validation error",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
-              }
-            }
-          },
-          "404": {
-            "description": "Author not found",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
-              }
-            }
-          },
-          "500": {
-            "description": "Server error",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "tags": ["Authors"],
-        "summary": "Delete an author",
-        "description": "Remove an author from the database",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": { "type": "string" },
-            "description": "Author ID"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Author deleted successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": { "type": "boolean" },
-                    "data": { "type": "object" }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Cannot delete author with books",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
-              }
-            }
-          },
-          "404": {
-            "description": "Author not found",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
-              }
-            }
-          },
-          "500": {
-            "description": "Server error",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/loans": {
-      "get": {
-        "tags": ["Loans"],
-        "summary": "Get all loan records",
-        "description": "Get all loan records with optional filtering and pagination",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "status",
-            "schema": { "type": "string", "enum": ["Active", "Returned", "Overdue"] },
-            "description": "Filter by loan status"
-          },
-          {
-            "in": "query",
-            "name": "email",
-            "schema": { "type": "string" },
-            "description": "Filter by borrower email"
-          },
-          {
-            "in": "query",
-            "name": "bookId",
-            "schema": { "type": "string" },
-            "description": "Filter by book ID"
-          },
-          {
-            "in": "query",
-            "name": "fromDate",
-            "schema": { "type": "string", "format": "date" },
-            "description": "Filter by loan date (from)"
-          },
-          {
-            "in": "query",
-            "name": "toDate",
-            "schema": { "type": "string", "format": "date" },
-            "description": "Filter by loan date (to)"
-          },
-          {
-            "in": "query",
-            "name": "page",
-            "schema": { "type": "integer", "default": 1 },
-            "description": "Page number for pagination"
-          },
-          {
-            "in": "query",
-            "name": "limit",
-            "schema": { "type": "integer", "default": 10 },
-            "description": "Number of items per page"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "A list of loan records",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": { "type": "boolean" },
-                    "count": { "type": "integer" },
-                    "total": { "type": "integer" },
-                    "pagination": { 
-                      "type": "object",
-                      "properties": {
-                        "page": { "type": "integer" },
-                        "limit": { "type": "integer" },
-                        "totalPages": { "type": "integer" }
-                      }
-                    },
-                    "data": {
-                      "type": "array",
-                      "items": { "$ref": "#/components/schemas/Loan" }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Server error",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "tags": ["Loans"],
-        "summary": "Create a new loan record",
-        "description": "Loan a book to someone",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/LoanInput" }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Loan record created successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": { "type": "boolean" },
-                    "data": { "$ref": "#/components/schemas/Loan" }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Validation error or book not available",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
-              }
-            }
-          },
-          "404": {
-            "description": "Book not found",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
-              }
-            }
-          },
-          "500": {
-            "description": "Server error",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/loans/{id}": {
-      "get": {
-        "tags": ["Loans"],
-        "summary": "Get a loan record by ID",
-        "description": "Get a single loan record by ID",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": { "type": "string" },
-            "description": "Loan ID"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Loan record found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": { "type": "boolean" },
-                    "data": { "$ref": "#/components/schemas/Loan" }
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Loan record not found",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
-              }
-            }
-          },
-          "500": {
-            "description": "Server error",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
-              }
-            }
-          }
-        }
-      },
-      "put": {
-        "tags": ["Loans"],
-        "summary": "Update a loan record",
-        "description": "Update a loan record (e.g., mark as returned)",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": { "type": "string" },
-            "description": "Loan ID"
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "status": { 
-                    "type": "string",
-                    "enum": ["Active", "Returned", "Overdue"]
-                  },
-                  "returnDate": { 
-                    "type": "string", 
-                    "format": "date-time"
-                  },
-                  "notes": { "type": "string" }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Loan record updated successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": { "type": "boolean" },
-                    "data": { "$ref": "#/components/schemas/Loan" }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Validation error",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
-              }
-            }
-          },
-          "404": {
-            "description": "Loan record not found",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
-              }
-            }
-          },
-          "500": {
-            "description": "Server error",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "tags": ["Loans"],
-        "summary": "Delete a loan record",
-        "description": "Remove a loan record from the database",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": { "type": "string" },
-            "description": "Loan ID"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Loan record deleted successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": { "type": "boolean" },
-                    "data": { "type": "object" }
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Loan record not found",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
-              }
-            }
-          },
-          "500": {
-            "description": "Server error",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/loans/stats": {
-      "get": {
-        "tags": ["Loans"],
-        "summary": "Get loan statistics",
-        "description": "Get statistics about book loans",
-        "responses": {
-          "200": {
-            "description": "Loan statistics",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": { "type": "boolean" },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "summary": {
-                          "type": "object",
-                          "properties": {
-                            "totalLoans": { "type": "integer" },
-                            "activeLoans": { "type": "integer" },
-                            "returnedLoans": { "type": "integer" },
-                            "overdueLoans": { "type": "integer" }
-                          }
-                        },
-                        "averageLoanDuration": { "type": "number" }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Server error",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
-              }
-            }
-          }
-        }
-      }
-    }
-  },
   "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
     "schemas": {
+      "User": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string" },
+          "username": { "type": "string" },
+          "email": { "type": "string", "format": "email" },
+          "role": { "type": "string", "enum": ["user", "admin"] },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
       "Book": {
         "type": "object",
         "properties": {
           "_id": { "type": "string" },
           "title": { "type": "string" },
-          "author": { 
+          "author": {
             "oneOf": [
               { "type": "string" },
               { "$ref": "#/components/schemas/Author" }
@@ -1056,18 +53,18 @@
           "isbn": { "type": "string" },
           "publicationDate": { "type": "string", "format": "date-time" },
           "pages": { "type": "integer" },
-          "format": { 
+          "format": {
             "type": "string",
             "enum": ["Hardcover", "Paperback", "E-book", "Audiobook"]
           },
           "coverImage": { "type": "string" },
-          "personalRating": { 
+          "personalRating": {
             "type": "number",
             "minimum": 1,
             "maximum": 5,
             "nullable": true
           },
-          "readStatus": { 
+          "readStatus": {
             "type": "string",
             "enum": ["Read", "Currently Reading", "To Read"],
             "default": "To Read"
@@ -1088,18 +85,18 @@
           "isbn": { "type": "string" },
           "publicationDate": { "type": "string", "format": "date-time" },
           "pages": { "type": "integer", "minimum": 1 },
-          "format": { 
+          "format": {
             "type": "string",
             "enum": ["Hardcover", "Paperback", "E-book", "Audiobook"]
           },
           "coverImage": { "type": "string" },
-          "personalRating": { 
+          "personalRating": {
             "type": "number",
             "minimum": 1,
             "maximum": 5,
             "nullable": true
           },
-          "readStatus": { 
+          "readStatus": {
             "type": "string",
             "enum": ["Read", "Currently Reading", "To Read"]
           },
@@ -1184,6 +181,90 @@
               { "type": "string" },
               { "type": "array", "items": { "type": "string" } }
             ]
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Authentication",
+      "description": "Operations related to user authentication"
+    },
+    {
+      "name": "Books",
+      "description": "Operations related to books"
+    },
+    {
+      "name": "Authors",
+      "description": "Operations related to authors"
+    },
+    {
+      "name": "Loans",
+      "description": "Operations related to loan records"
+    }
+  ],
+  "paths": {
+    "/auth/register": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Register a new user",
+        "description": "Create a new user account",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["username", "email", "password"],
+                "properties": {
+                  "username": { "type": "string", "minLength": 3, "maxLength": 30 },
+                  "email": { "type": "string", "format": "email" },
+                  "password": { "type": "string", "minLength": 6 }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User registered successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "token": { "type": "string" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "_id": { "type": "string" },
+                        "username": { "type": "string" },
+                        "email": { "type": "string" },
+                        "role": { "type": "string" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error or user already exists",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
           }
         }
       }

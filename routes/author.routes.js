@@ -23,17 +23,17 @@ router.get('/:id', authorController.getAuthorById);
 
 // @route   POST /api/authors
 // @desc    Create a new author
-// @access  Public (will be protected in Week 4)
-router.post('/', validateAuthor, authorController.createAuthor);
+// @access  Private
+router.post('/', protect, validateAuthor, authorController.createAuthor);
 
 // @route   PUT /api/authors/:id
 // @desc    Update an author
-// @access  Public (will be protected in Week 4)
-router.put('/:id', validateAuthor, authorController.updateAuthor);
+// @access  Private
+router.put('/:id', protect, validateAuthor, authorController.updateAuthor);
 
 // @route   DELETE /api/authors/:id
 // @desc    Delete an author
-// @access  Public (will be protected in Week 4)
-router.delete('/:id', authorController.deleteAuthor);
+// @access  Private
+router.delete('/:id', protect, authorController.deleteAuthor);
 
 module.exports = router;

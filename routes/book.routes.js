@@ -23,17 +23,17 @@ router.get('/:id', bookController.getBookById);
 
 // @route   POST /api/books
 // @desc    Create a new book
-// @access  Public (will be protected in Week 4)
-router.post('/', validateBook, bookController.createBook);
+// @access  Private
+router.post('/', protect, validateBook, bookController.createBook);
 
 // @route   PUT /api/books/:id
 // @desc    Update a book
-// @access  Public (will be protected in Week 4)
-router.put('/:id', validateBook, bookController.updateBook);
+// @access  Private
+router.put('/:id', protect, validateBook, bookController.updateBook);
 
 // @route   DELETE /api/books/:id
 // @desc    Delete a book
-// @access  Public (will be protected in Week 4)
-router.delete('/:id', bookController.deleteBook);
+// @access  Private
+router.delete('/:id', protect, bookController.deleteBook);
 
 module.exports = router;
