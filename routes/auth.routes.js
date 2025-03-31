@@ -4,6 +4,12 @@ const router = express.Router();
 const authController = require('../controllers/auth.controller');
 const { protect, validateRegister, validateLogin } = require('../middleware/auth');
 
+// Ensure all required controller methods are defined
+if (!authController.register || !authController.login || !authController.getMe || !authController.logout || !authController.googleAuth || !authController.googleCallback) {
+    console.error('One or more methods in authController are undefined. Please check the auth.controller.js file.');
+    process.exit(1); // Exit the application if methods are missing
+}
+
 // @route   POST /api/auth/register
 // @desc    Register a new user
 // @access  Public
