@@ -10,12 +10,8 @@
   },
   "servers": [
     {
-      "url": "http://localhost:3000/api",
-      "description": "Development server"
-    },
-    {
-      "url": "https://personal-library-api.onrender.com/api",
-      "description": "Production server"
+      "url": "/api",
+      "description": "API Server"
     }
   ],
   "components": {
@@ -24,6 +20,18 @@
         "type": "http",
         "scheme": "bearer",
         "bearerFormat": "JWT"
+      },
+      "oauth2": {
+        "type": "oauth2",
+        "flows": {
+          "password": {
+            "tokenUrl": "/auth/token",
+            "scopes": {
+              "read": "Read access",
+              "write": "Write access"
+            }
+          }
+        }
       }
     },
     "schemas": {
@@ -136,42 +144,6 @@
           "notes": { "type": "string", "maxLength": 1000 }
         }
       },
-      "Loan": {
-        "type": "object",
-        "properties": {
-          "_id": { "type": "string" },
-          "book": {
-            "oneOf": [
-              { "type": "string" },
-              { "$ref": "#/components/schemas/Book" }
-            ]
-          },
-          "borrowerName": { "type": "string" },
-          "borrowerEmail": { "type": "string" },
-          "loanDate": { "type": "string", "format": "date-time" },
-          "dueDate": { "type": "string", "format": "date-time" },
-          "returnDate": { "type": "string", "format": "date-time", "nullable": true },
-          "status": {
-            "type": "string",
-            "enum": ["Active", "Returned", "Overdue"],
-            "default": "Active"
-          },
-          "notes": { "type": "string" },
-          "createdAt": { "type": "string", "format": "date-time" },
-          "updatedAt": { "type": "string", "format": "date-time" }
-        }
-      },
-      "LoanInput": {
-        "type": "object",
-        "required": ["book", "borrowerName", "borrowerEmail", "dueDate"],
-        "properties": {
-          "book": { "type": "string" },
-          "borrowerName": { "type": "string", "minLength": 2 },
-          "borrowerEmail": { "type": "string", "format": "email" },
-          "dueDate": { "type": "string", "format": "date-time" },
-          "notes": { "type": "string", "maxLength": 500 }
-        }
-      },
       "Error": {
         "type": "object",
         "properties": {
@@ -182,6 +154,23 @@
               { "type": "array", "items": { "type": "string" } }
             ]
           }
+        }
+      },
+      "LoginInput": {
+        "type": "object",
+        "required": ["email", "password"],
+        "properties": {
+          "email": { "type": "string", "format": "email" },
+          "password": { "type": "string", "minLength": 6 }
+        }
+      },
+      "RegisterInput": {
+        "type": "object",
+        "required": ["username", "email", "password"],
+        "properties": {
+          "username": { "type": "string", "minLength": 3, "maxLength": 30 },
+          "email": { "type": "string", "format": "email" },
+          "password": { "type": "string", "minLength": 6 }
         }
       }
     }
@@ -198,10 +187,6 @@
     {
       "name": "Authors",
       "description": "Operations related to authors"
-    },
-    {
-      "name": "Loans",
-      "description": "Operations related to loan records"
     }
   ],
   "paths": {
@@ -215,13 +200,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "required": ["username", "email", "password"],
-                "properties": {
-                  "username": { "type": "string", "minLength": 3, "maxLength": 30 },
-                  "email": { "type": "string", "format": "email" },
-                  "password": { "type": "string", "minLength": 6 }
-                }
+                "$ref": "#/components/schemas/RegisterInput"
               }
             }
           }
