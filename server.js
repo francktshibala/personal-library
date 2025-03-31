@@ -33,45 +33,28 @@ if (process.env.NODE_ENV !== 'production') {
   });
 }
 
-// Create swagger directory if it doesn't exist
+// Ensure the swagger directory exists
 const swaggerDir = path.join(__dirname, 'swagger');
 if (!fs.existsSync(swaggerDir)) {
   fs.mkdirSync(swaggerDir);
 }
 
-// Create or ensure swagger.json exists
+// Load or create swagger document
 const swaggerPath = path.join(swaggerDir, 'swagger.json');
 if (!fs.existsSync(swaggerPath)) {
-  // Create a basic swagger file if it doesn't exist
-  const basicSwagger = {
-    "openapi": "3.0.0",
-    "info": {
-      "title": "Personal Library API",
-      "description": "API for managing a personal book collection",
-      "version": "1.0.0"
-    },
-    "servers": [
-      {
-        "url": "/api",
-        "description": "API Server"
-      }
-    ],
-    "components": {
-      "securitySchemes": {
-        "bearerAuth": {
-          "type": "http",
-          "scheme": "bearer",
-          "bearerFormat": "JWT"
-        }
-      }
-    },
-    "paths": {}
-  };
-  fs.writeFileSync(swaggerPath, JSON.stringify(basicSwagger, null, 2));
+  console.error('Swagger documentation file not found. Please create the swagger.json file.');
+  process.exit(1);
 }
 
 // Load swagger document
-const swaggerDocument = require('./swagger/swagger.json');
+let swaggerDocument;
+try {
+  const swaggerFile = fs.readFileSync(swaggerPath, 'utf8');
+  swaggerDocument = JSON.parse(swaggerFile);
+} catch (error) {
+  console.error('Error loading Swagger documentation:', error);
+  process.exit(1);
+}
 
 // Welcome route
 app.get('/', (req, res) => {
@@ -88,7 +71,14 @@ app.use('/api/authors', require('./routes/author.routes'));
 app.use('/api/loans', require('./routes/loan.routes'));
 
 // API Documentation
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+const swaggerOptions = {
+  explorer: true,
+  customCss: '.swagger-ui .topbar { display: none }',
+  customSiteTitle: "Personal Library API Documentation",
+  customfavIcon: "/favicon.ico"
+};
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument, swaggerOptions));
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -111,6 +101,7 @@ app.use((req, res) => {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+  console.log(`API Documentation available at http://localhost:${PORT}/api-docs`);
 });
 
 module.exports = app; // Export for testing
