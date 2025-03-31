@@ -26,56 +26,60 @@ module.exports = function () {
     })
   );
 
-  // Google OAuth Strategy
-  passport.use(
-    new GoogleStrategy(
-      {
-        clientID: process.env.GOOGLE_CLIENT_ID,
-        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-        callbackURL: '/api/auth/google/callback',
-      },
-      async (accessToken, refreshToken, profile, done) => {
-        try {
-          // Check if user already exists with this Google ID
-          let user = await User.findOne({ googleId: profile.id });
+  // Google OAuth Strategy (will be used if GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET are provided)
+  if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+    passport.use(
+      new GoogleStrategy(
+        {
+          clientID: process.env.GOOGLE_CLIENT_ID,
+          clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+          callbackURL: '/api/auth/google/callback',
+        },
+        async (accessToken, refreshToken, profile, done) => {
+          try {
+            // Check if user already exists with this Google ID
+            let user = await User.findOne({ googleId: profile.id });
 
-          if (user) {
-            return done(null, user);
-          }
+            if (user) {
+              return done(null, user);
+            }
 
-          // Check if a user with this email already exists
-          const existingUser = await User.findOne({ email: profile.emails[0].value });
+            // Check if a user with this email already exists
+            const existingUser = await User.findOne({ email: profile.emails[0].value });
 
-          if (existingUser) {
-            // If user with this email exists but doesn't have Google ID, update the user
-            if (existingUser.authMethod === 'local') {
-              existingUser.googleId = profile.id;
-              existingUser.picture = profile.photos[0].value;
-              await existingUser.save();
+            if (existingUser) {
+              // If user with this email exists but doesn't have Google ID, update the user
+              if (existingUser.authMethod === 'local') {
+                existingUser.googleId = profile.id;
+                existingUser.picture = profile.photos[0].value;
+                await existingUser.save();
+                return done(null, existingUser);
+              }
               return done(null, existingUser);
             }
-            return done(null, existingUser);
+
+            // Create a new user
+            const newUser = new User({
+              username: profile.displayName.replace(/\s/g, '') + profile.id.substring(0, 5),
+              email: profile.emails[0].value,
+              googleId: profile.id,
+              picture: profile.photos[0].value,
+              authMethod: 'google',
+            });
+
+            // Save the new user
+            await newUser.save();
+            return done(null, newUser);
+          } catch (error) {
+            console.error('Google OAuth error:', error);
+            return done(error, false);
           }
-
-          // Create a new user
-          const newUser = new User({
-            username: profile.displayName.replace(/\s/g, '') + profile.id.substring(0, 5),
-            email: profile.emails[0].value,
-            googleId: profile.id,
-            picture: profile.photos[0].value,
-            authMethod: 'google',
-          });
-
-          // Save the new user
-          await newUser.save();
-          return done(null, newUser);
-        } catch (error) {
-          console.error('Google OAuth error:', error);
-          return done(error, false);
         }
-      }
-    )
-  );
+      )
+    );
+  } else {
+    console.log('Google OAuth credentials not provided. Google authentication is disabled.');
+  }
 
   // Serialize user to session
   passport.serializeUser((user, done) => {

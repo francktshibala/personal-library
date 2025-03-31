@@ -134,21 +134,8 @@ exports.googleCallback = (req, res, next) => {
     // Generate token
     const token = generateToken(user._id);
 
-    // Redirect to a success page or dashboard
-    res.redirect('/dashboard');
-
-    // Alternatively, show a success page with the token:
-    /*
-    res.send(`
-      <h1>Authentication Successful!</h1>
-      <p>You are now logged in with Google.</p>
-      <p>Your token: ${token}</p>
-      <script>
-        // Store token in localStorage
-        localStorage.setItem('authToken', '${token}');
-      </script>
-    `);
-    */
+    // Redirect to a success page with the token
+    res.redirect(`/dashboard?token=${token}`);
   })(req, res, next);
 };
 
