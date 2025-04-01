@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>OAuth Callback - Personal Library</title>
+  <title>Authentication Success - Personal Library</title>
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -12,12 +12,12 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
+      min-height: 100vh;
       background-color: #f5f5f5;
       color: #333;
     }
     
-    .callback-container {
+    .auth-container {
       background-color: white;
       border-radius: 8px;
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
@@ -27,39 +27,124 @@
       width: 90%;
     }
     
-    .callback-container h1 {
+    .auth-container h1 {
       margin-top: 0;
       color: #4285F4;
     }
     
-    .callback-container p {
+    .auth-container p {
       line-height: 1.6;
+      margin-bottom: 20px;
     }
     
-    .loader {
-      border: 4px solid #f3f3f3;
-      border-top: 4px solid #4285F4;
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      animation: spin 1s linear infinite;
-      margin: 20px auto;
+    .token-display {
+      background-color: #f8f9fa;
+      border: 1px solid #dee2e6;
+      border-radius: 4px;
+      padding: 15px;
+      overflow-x: auto;
+      margin-bottom: 20px;
+      text-align: left;
+      word-break: break-all;
     }
     
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+    .btn {
+      display: inline-block;
+      background-color: #4285F4;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      text-decoration: none;
+    }
+    
+    .btn:hover {
+      background-color: #3367d6;
+    }
+
+    .status {
+      margin-top: 20px;
+      padding: 10px;
+      border-radius: 4px;
+    }
+
+    .success {
+      background-color: #d4edda;
+      color: #155724;
+    }
+
+    .error {
+      background-color: #f8d7da;
+      color: #721c24;
     }
   </style>
 </head>
 <body>
-  <div class="callback-container">
+  <div class="auth-container">
     <h1>Personal Library</h1>
-    <h2 id="message">Authenticating...</h2>
-    <div class="loader"></div>
-    <p id="status">Please wait while we complete the authentication process.</p>
+    <div id="loading">
+      <p>Processing authentication...</p>
+    </div>
+    <div id="result" style="display: none;">
+      <div id="success" style="display: none;">
+        <h2>Authentication Successful!</h2>
+        <p>You have been successfully authenticated. Your access token is:</p>
+        <div class="token-display" id="token-value">...</div>
+        <p>You'll need to include this token in the Authorization header of your API requests:</p>
+        <pre class="token-display">Authorization: Bearer &lt;your-token&gt;</pre>
+        <p>For security, save this token in a secure place (like localStorage) and don't share it with others.</p>
+        <div class="status success">
+          You can now close this window and return to using the API.
+        </div>
+      </div>
+      <div id="error" style="display: none;">
+        <h2>Authentication Failed</h2>
+        <p>There was a problem processing your authentication.</p>
+        <div class="status error" id="error-message">
+          No authentication token received.
+        </div>
+        <p>Please try again or contact support if the problem persists.</p>
+      </div>
+    </div>
   </div>
 
-  <script src="oauth-callback.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const loadingElement = document.getElementById('loading');
+      const resultElement = document.getElementById('result');
+      const successElement = document.getElementById('success');
+      const errorElement = document.getElementById('error');
+      const tokenValueElement = document.getElementById('token-value');
+      const errorMessageElement = document.getElementById('error-message');
+      
+      // Extract token from URL query parameters
+      const urlParams = new URLSearchParams(window.location.search);
+      const token = urlParams.get('token');
+      
+      // Hide loading message
+      loadingElement.style.display = 'none';
+      resultElement.style.display = 'block';
+      
+      if (token) {
+        // Show success message with the token
+        successElement.style.display = 'block';
+        tokenValueElement.textContent = token;
+        
+        // Store token in localStorage
+        try {
+          localStorage.setItem('personalLibraryToken', token);
+          console.log('Token saved to localStorage');
+        } catch (error) {
+          console.error('Could not save token to localStorage', error);
+        }
+      } else {
+        // Show error message
+        errorElement.style.display = 'block';
+        errorMessageElement.textContent = 'No authentication token received.';
+      }
+    });
+  </script>
 </body>
 </html>
