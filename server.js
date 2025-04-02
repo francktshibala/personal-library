@@ -11,7 +11,7 @@ const initPassport = require('./config/passport.config');
 // Load environment variables
 require('dotenv').config();
 
-// Connect to database
+// Connect to databases
 connectDB();
 
 // Initialize express
