@@ -30,6 +30,78 @@
     }
   ],
   "paths": {
+    "/auth/register": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Register a new user",
+        "description": "Create a new user account with username, email, and password",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successfully registered",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - validation error"
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Login a user",
+        "description": "Authenticate a user and return a JWT token",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully logged in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "token": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid credentials"
+          }
+        }
+      }
+    },
     "/books": {
       "get": {
         "tags": ["Books"],
@@ -43,6 +115,23 @@
               "type": "string"
             },
             "description": "Filter by genre"
+          },
+          {
+            "in": "query",
+            "name": "readStatus",
+            "schema": {
+              "type": "string",
+              "enum": ["Read", "Currently Reading", "To Read"]
+            },
+            "description": "Filter by read status"
+          },
+          {
+            "in": "query",
+            "name": "search",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Text search in title and genre"
           },
           {
             "in": "query",
@@ -74,6 +163,15 @@
                     "success": {
                       "type": "boolean"
                     },
+                    "count": {
+                      "type": "integer"
+                    },
+                    "total": {
+                      "type": "integer"
+                    },
+                    "pagination": {
+                      "type": "object"
+                    },
                     "data": {
                       "type": "array",
                       "items": {
@@ -81,23 +179,9 @@
                       }
                     }
                   }
-                },
-                "example": {
-                  "success": true,
-                  "data": [
-                    {
-                      "_id": "book1",
-                      "title": "Book Title 1",
-                      "author": "Author 1",
-                      "genre": "Fiction"
-                    }
-                  ]
                 }
               }
             }
-          },
-          "500": {
-            "description": "Internal server error"
           }
         }
       },
@@ -116,11 +200,6 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/BookInput"
-              },
-              "example": {
-                "title": "New Book",
-                "author": "Author ID",
-                "genre": "Fiction"
               }
             }
           }
@@ -148,8 +227,8 @@
     "/books/{id}": {
       "get": {
         "tags": ["Books"],
-        "summary": "Get a book by ID",
-        "description": "Retrieve a single book by its ID",
+        "summary": "Get a single book",
+        "description": "Retrieve a book by its ID",
         "parameters": [
           {
             "in": "path",
@@ -158,7 +237,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "The ID of the book to retrieve"
+            "description": "Book ID"
           }
         ],
         "responses": {
@@ -167,7 +246,15 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Book"
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Book"
+                    }
+                  }
                 }
               }
             }
@@ -179,8 +266,8 @@
       },
       "put": {
         "tags": ["Books"],
-        "summary": "Update a book by ID",
-        "description": "Update the details of an existing book",
+        "summary": "Update a book",
+        "description": "Update an existing book by its ID",
         "security": [
           {
             "bearerAuth": []
@@ -194,7 +281,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "The ID of the book to update"
+            "description": "Book ID"
           }
         ],
         "requestBody": {
@@ -203,18 +290,13 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/BookInput"
-              },
-              "example": {
-                "title": "Updated Book Title",
-                "author": "Updated Author ID",
-                "genre": "Updated Genre"
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Successfully updated book",
+            "description": "Book updated successfully",
             "content": {
               "application/json": {
                 "schema": {
@@ -236,8 +318,8 @@
       },
       "delete": {
         "tags": ["Books"],
-        "summary": "Delete a book by ID",
-        "description": "Remove a book from the collection",
+        "summary": "Delete a book",
+        "description": "Delete a book by its ID",
         "security": [
           {
             "bearerAuth": []
@@ -251,12 +333,27 @@
             "schema": {
               "type": "string"
             },
-            "description": "The ID of the book to delete"
+            "description": "Book ID"
           }
         ],
         "responses": {
           "200": {
-            "description": "Successfully deleted book"
+            "description": "Book deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized"
@@ -266,11 +363,624 @@
           }
         }
       }
+    },
+    "/authors": {
+      "get": {
+        "tags": ["Authors"],
+        "summary": "Get all authors",
+        "description": "Retrieve a list of all authors with filtering and pagination",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "nationality",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filter by nationality"
+          },
+          {
+            "in": "query",
+            "name": "search",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Text search by name"
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            },
+            "description": "Page number"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            },
+            "description": "Results per page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved authors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "count": {
+                      "type": "integer"
+                    },
+                    "total": {
+                      "type": "integer"
+                    },
+                    "pagination": {
+                      "type": "object"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Author"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Authors"],
+        "summary": "Create a new author",
+        "description": "Add a new author to the collection",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthorInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Author created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Author"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - validation error"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/authors/{id}": {
+      "get": {
+        "tags": ["Authors"],
+        "summary": "Get a single author",
+        "description": "Retrieve an author by their ID",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Author ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved author",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Author"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Author not found"
+          }
+        }
+      },
+      "put": {
+        "tags": ["Authors"],
+        "summary": "Update an author",
+        "description": "Update an existing author by their ID",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Author ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthorInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Author updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Author"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - validation error"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Author not found"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Authors"],
+        "summary": "Delete an author",
+        "description": "Delete an author by their ID",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Author ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Author deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Author not found"
+          }
+        }
+      }
+    },
+    "/loans": {
+      "get": {
+        "tags": ["Loans"],
+        "summary": "Get all loans",
+        "description": "Retrieve a list of all loan records with filtering and pagination",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "type": "string",
+              "enum": ["Active", "Returned", "Overdue"]
+            },
+            "description": "Filter by status"
+          },
+          {
+            "in": "query",
+            "name": "email",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filter by borrower email"
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            },
+            "description": "Page number"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            },
+            "description": "Results per page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved loan records",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "count": {
+                      "type": "integer"
+                    },
+                    "total": {
+                      "type": "integer"
+                    },
+                    "pagination": {
+                      "type": "object"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/LoanRecord"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      },
+      "post": {
+        "tags": ["Loans"],
+        "summary": "Create a new loan record",
+        "description": "Add a new loan record for a book",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoanInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Loan record created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoanRecord"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - validation error"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/loans/{id}": {
+      "get": {
+        "tags": ["Loans"],
+        "summary": "Get a single loan record",
+        "description": "Retrieve a loan record by its ID",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Loan ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved loan record",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/LoanRecord"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Loan record not found"
+          }
+        }
+      },
+      "put": {
+        "tags": ["Loans"],
+        "summary": "Update a loan record",
+        "description": "Update an existing loan record by its ID",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Loan ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoanUpdateInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Loan record updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoanRecord"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - validation error"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Loan record not found"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Loans"],
+        "summary": "Delete a loan record",
+        "description": "Delete a loan record by its ID",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Loan ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Loan record deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Loan record not found"
+          }
+        }
+      }
+    },
+    "/loans/{id}/return": {
+      "put": {
+        "tags": ["Loans"],
+        "summary": "Return a book",
+        "description": "Mark a loan record as returned",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Loan ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Book marked as returned successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoanRecord"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Loan record not found"
+          }
+        }
+      }
     }
-    // Add similar CRUD operations for Authors and Loans...
   },
   "components": {
     "schemas": {
+      "User": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "enum": ["user", "admin"]
+          }
+        }
+      },
+      "RegisterInput": {
+        "type": "object",
+        "required": ["username", "email", "password"],
+        "properties": {
+          "username": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 30
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 6
+          }
+        }
+      },
+      "LoginInput": {
+        "type": "object",
+        "required": ["email", "password"],
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "password": {
+            "type": "string"
+          }
+        }
+      },
       "Book": {
         "type": "object",
         "properties": {
@@ -281,24 +991,213 @@
             "type": "string"
           },
           "author": {
-            "type": "string"
+            "type": "object"
           },
           "genre": {
             "type": "string"
+          },
+          "isbn": {
+            "type": "string"
+          },
+          "publicationDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "pages": {
+            "type": "integer"
+          },
+          "format": {
+            "type": "string",
+            "enum": ["Hardcover", "Paperback", "E-book", "Audiobook"]
+          },
+          "personalRating": {
+            "type": "number"
+          },
+          "readStatus": {
+            "type": "string",
+            "enum": ["Read", "Currently Reading", "To Read"]
+          },
+          "isAvailable": {
+            "type": "boolean"
           }
         }
       },
       "BookInput": {
         "type": "object",
-        "required": ["title", "author", "genre"],
+        "required": ["title", "author", "genre", "isbn", "publicationDate", "pages", "format"],
         "properties": {
           "title": {
             "type": "string"
           },
           "author": {
-            "type": "string"
+            "type": "string",
+            "description": "Author ID"
           },
           "genre": {
+            "type": "string"
+          },
+          "isbn": {
+            "type": "string"
+          },
+          "publicationDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "pages": {
+            "type": "integer"
+          },
+          "format": {
+            "type": "string",
+            "enum": ["Hardcover", "Paperback", "E-book", "Audiobook"]
+          },
+          "personalRating": {
+            "type": "number"
+          },
+          "readStatus": {
+            "type": "string",
+            "enum": ["Read", "Currently Reading", "To Read"]
+          }
+        }
+      },
+      "Author": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "biography": {
+            "type": "string"
+          },
+          "birthDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "deathDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "nationality": {
+            "type": "string"
+          },
+          "genres": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "AuthorInput": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "biography": {
+            "type": "string"
+          },
+          "birthDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "deathDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "nationality": {
+            "type": "string"
+          },
+          "genres": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "LoanRecord": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string"
+          },
+          "book": {
+            "type": "object"
+          },
+          "borrowerName": {
+            "type": "string"
+          },
+          "borrowerEmail": {
+            "type": "string"
+          },
+          "loanDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "dueDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "returnDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["Active", "Returned", "Overdue"]
+          },
+          "notes": {
+            "type": "string"
+          }
+        }
+      },
+      "LoanInput": {
+        "type": "object",
+        "required": ["book", "borrowerName", "borrowerEmail", "dueDate"],
+        "properties": {
+          "book": {
+            "type": "string",
+            "description": "Book ID"
+          },
+          "borrowerName": {
+            "type": "string"
+          },
+          "borrowerEmail": {
+            "type": "string",
+            "format": "email"
+          },
+          "dueDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "notes": {
+            "type": "string"
+          }
+        }
+      },
+      "LoanUpdateInput": {
+        "type": "object",
+        "properties": {
+          "borrowerName": {
+            "type": "string"
+          },
+          "borrowerEmail": {
+            "type": "string",
+            "format": "email"
+          },
+          "dueDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["Active", "Returned", "Overdue"]
+          },
+          "notes": {
             "type": "string"
           }
         }
