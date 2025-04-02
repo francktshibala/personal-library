@@ -8,6 +8,26 @@ const fs = require('fs');
 const path = require('path');
 const initPassport = require('./config/passport.config');
 
+// Create symlink from 'util' to 'utils' if it doesn't exist
+try {
+  if (!fs.existsSync('./util')) {
+    if (fs.existsSync('./utils')) {
+      if (process.platform === 'win32') {
+        fs.symlinkSync('./utils', './util', 'junction');
+      } else {
+        fs.symlinkSync('./utils', './util');
+      }
+      console.log("Created symlink from 'util' to 'utils'");
+    }
+  }
+} catch (err) {
+  console.error("Failed to create symlink:", err);
+}
+
+// Debug: List files to help identify path issues
+console.log('Listing files in current directory:');
+console.log(fs.readdirSync('.'));
+
 // Load environment variables
 require('dotenv').config();
 
