@@ -8,20 +8,37 @@ const fs = require('fs');
 const path = require('path');
 const initPassport = require('./config/passport.config');
 
-// Create symlink from 'util' to 'utils' if it doesn't exist
+// Fix the validator nullUndefinedCheck issue by manually adding it to node_modules if it doesn't exist
 try {
-  if (!fs.existsSync('./util')) {
-    if (fs.existsSync('./utils')) {
-      if (process.platform === 'win32') {
-        fs.symlinkSync('./utils', './util', 'junction');
-      } else {
-        fs.symlinkSync('./utils', './util');
+  const validatorDir = path.join(__dirname, 'node_modules', 'validator', 'lib');
+  const utilDir = path.join(validatorDir, 'util');
+  const nullCheckFile = path.join(utilDir, 'nullUndefinedCheck.js');
+  
+  // Create util directory if it doesn't exist
+  if (!fs.existsSync(utilDir)) {
+    fs.mkdirSync(utilDir, { recursive: true });
+    console.log("Created util directory in validator package");
+  }
+  
+  // Create nullUndefinedCheck.js file if it doesn't exist
+  if (!fs.existsSync(nullCheckFile)) {
+    const fileContent = `
+      /**
+       * Checks if a value is null or undefined
+       * @param {*} value - The value to check
+       * @returns {boolean} - Returns true if the value is null or undefined
+       */
+      function nullUndefinedCheck(value) {
+        return value === null || value === undefined;
       }
-      console.log("Created symlink from 'util' to 'utils'");
-    }
+      
+      module.exports = nullUndefinedCheck;
+    `;
+    fs.writeFileSync(nullCheckFile, fileContent);
+    console.log("Created nullUndefinedCheck.js in validator/lib/util");
   }
 } catch (err) {
-  console.error("Failed to create symlink:", err);
+  console.error("Failed to create validator util files:", err);
 }
 
 // Debug: List files to help identify path issues

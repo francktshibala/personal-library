@@ -15,17 +15,17 @@ const generateToken = (id) => {
 // @access  Public
 exports.register = asyncHandler(async (req, res) => {
   const { username, email, password } = req.body;
-  
+
   // Check if user with email already exists
   const existingUser = await User.findOne({ email });
-  
+
   if (existingUser) {
     return res.status(400).json({
       success: false,
       error: 'User with this email already exists'
     });
   }
-  
+
   // Create new user
   const user = await User.create({
     username,
@@ -33,10 +33,10 @@ exports.register = asyncHandler(async (req, res) => {
     password,
     authMethod: 'local'
   });
-  
+
   // Generate token
   const token = generateToken(user._id);
-  
+
   res.status(201).json({
     success: true,
     token,
@@ -54,30 +54,30 @@ exports.register = asyncHandler(async (req, res) => {
 // @access  Public
 exports.login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
-  
+
   // Find user by email
   const user = await User.findOne({ email }).select('+password');
-  
+
   if (!user) {
     return res.status(401).json({
       success: false,
       error: 'Invalid credentials'
     });
   }
-  
+
   // Check if password matches
   const isMatch = await user.comparePassword(password);
-  
+
   if (!isMatch) {
     return res.status(401).json({
       success: false,
       error: 'Invalid credentials'
     });
   }
-  
+
   // Generate token
   const token = generateToken(user._id);
-  
+
   res.status(200).json({
     success: true,
     token,
@@ -95,7 +95,7 @@ exports.login = asyncHandler(async (req, res) => {
 // @access  Private
 exports.getMe = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user.id);
-  
+
   res.status(200).json({
     success: true,
     data: user
@@ -127,7 +127,7 @@ exports.googleCallback = [
   (req, res) => {
     // Generate token for the authenticated user
     const token = generateToken(req.user._id);
-    
+
     // Redirect to client with token
     res.redirect(`/oauth-callback.html?token=${token}`);
   }

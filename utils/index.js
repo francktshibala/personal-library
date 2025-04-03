@@ -1,4 +1,4 @@
-const nullUndefinedCheck = require('./nullUndefinedCheck');
+const nullUndefinedCheck = require('../nullUndefinedCheck');
 
 module.exports = {
   nullUndefinedCheck

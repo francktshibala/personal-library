@@ -4,7 +4,8 @@
     "description": "A Personal Library Management API",
     "main": "server.js",
     "scripts": {
-        "start": "node server.js",
+        "patch-validator": "node patch-validator.js",
+        "start": "node patch-validator.js && node server.js",
         "dev": "nodemon server.js"
     },
     "dependencies": {

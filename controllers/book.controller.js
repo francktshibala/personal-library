@@ -6,7 +6,7 @@ const { asyncHandler } = require('../utils/errorHandler');
 exports.createBook = asyncHandler(async (req, res) => {
   const book = new Book(req.body);
   const savedBook = await book.save();
-  
+
   res.status(201).json({
     success: true,
     data: savedBook
@@ -17,46 +17,46 @@ exports.createBook = asyncHandler(async (req, res) => {
 exports.getBooks = asyncHandler(async (req, res) => {
   // Build query
   let query = {};
-  
+
   // Filter by genre
   if (req.query.genre) {
     query.genre = req.query.genre;
   }
-  
+
   // Filter by read status
   if (req.query.readStatus) {
     query.readStatus = req.query.readStatus;
   }
-  
+
   // Filter by availability
   if (req.query.isAvailable) {
     query.isAvailable = req.query.isAvailable === 'true';
   }
-  
+
   // Text search
   if (req.query.search) {
     query.$text = { $search: req.query.search };
   }
-  
+
   // Rating range
   if (req.query.minRating) {
     query.personalRating = { $gte: parseInt(req.query.minRating) };
   }
-  
+
   // Pagination
   const page = parseInt(req.query.page, 10) || 1;
   const limit = parseInt(req.query.limit, 10) || 10;
   const startIndex = (page - 1) * limit;
-  
+
   // Execute query with population
   const books = await Book.find(query)
     .populate('author', 'name nationality')
     .skip(startIndex)
     .limit(limit)
     .sort({ title: 1 });
-  
+
   const total = await Book.countDocuments(query);
-  
+
   res.status(200).json({
     success: true,
     count: books.length,
@@ -73,7 +73,7 @@ exports.getBooks = asyncHandler(async (req, res) => {
 // Get a single book by ID
 exports.getBookById = asyncHandler(async (req, res) => {
   const id = req.params.id;
-  
+
   // Validate if id is a valid MongoDB ObjectId
   if (!mongoose.Types.ObjectId.isValid(id)) {
     return res.status(400).json({
@@ -81,16 +81,16 @@ exports.getBookById = asyncHandler(async (req, res) => {
       error: 'Invalid book ID format'
     });
   }
-  
+
   const book = await Book.findById(id).populate('author');
-  
+
   if (!book) {
     return res.status(404).json({
       success: false,
       error: 'Book not found'
     });
   }
-  
+
   res.status(200).json({
     success: true,
     data: book
@@ -100,7 +100,7 @@ exports.getBookById = asyncHandler(async (req, res) => {
 // Update a book
 exports.updateBook = asyncHandler(async (req, res) => {
   const id = req.params.id;
-  
+
   // Validate if id is a valid MongoDB ObjectId
   if (!mongoose.Types.ObjectId.isValid(id)) {
     return res.status(400).json({
@@ -108,24 +108,24 @@ exports.updateBook = asyncHandler(async (req, res) => {
       error: 'Invalid book ID format'
     });
   }
-  
+
   // Find book and update it
   const book = await Book.findByIdAndUpdate(
-    id, 
-    req.body, 
-    { 
+    id,
+    req.body,
+    {
       new: true,  // Return the updated document
       runValidators: true  // Run model validators
     }
   );
-  
+
   if (!book) {
     return res.status(404).json({
       success: false,
       error: 'Book not found'
     });
   }
-  
+
   res.status(200).json({
     success: true,
     data: book
@@ -135,7 +135,7 @@ exports.updateBook = asyncHandler(async (req, res) => {
 // Delete a book
 exports.deleteBook = asyncHandler(async (req, res) => {
   const id = req.params.id;
-  
+
   // Validate if id is a valid MongoDB ObjectId
   if (!mongoose.Types.ObjectId.isValid(id)) {
     return res.status(400).json({
@@ -143,16 +143,16 @@ exports.deleteBook = asyncHandler(async (req, res) => {
       error: 'Invalid book ID format'
     });
   }
-  
+
   const book = await Book.findByIdAndDelete(id);
-  
+
   if (!book) {
     return res.status(404).json({
       success: false,
       error: 'Book not found'
     });
   }
-  
+
   res.status(200).json({
     success: true,
     data: {}
@@ -167,26 +167,26 @@ exports.getBookStats = asyncHandler(async (req, res) => {
         _id: null,
         totalBooks: { $sum: 1 },
         avgRating: { $avg: '$personalRating' },
-        readBooks: { 
-          $sum: { 
-            $cond: [{ $eq: ['$readStatus', 'Read'] }, 1, 0] 
-          } 
+        readBooks: {
+          $sum: {
+            $cond: [{ $eq: ['$readStatus', 'Read'] }, 1, 0]
+          }
         },
-        currentlyReading: { 
-          $sum: { 
-            $cond: [{ $eq: ['$readStatus', 'Currently Reading'] }, 1, 0] 
-          } 
+        currentlyReading: {
+          $sum: {
+            $cond: [{ $eq: ['$readStatus', 'Currently Reading'] }, 1, 0]
+          }
         },
-        toRead: { 
-          $sum: { 
-            $cond: [{ $eq: ['$readStatus', 'To Read'] }, 1, 0] 
-          } 
+        toRead: {
+          $sum: {
+            $cond: [{ $eq: ['$readStatus', 'To Read'] }, 1, 0]
+          }
         },
         avgPages: { $avg: '$pages' }
       }
     }
   ]);
-  
+
   // Get genre distribution
   const genres = await Book.aggregate([
     {
@@ -199,7 +199,7 @@ exports.getBookStats = asyncHandler(async (req, res) => {
       $sort: { count: -1 }
     }
   ]);
-  
+
   res.status(200).json({
     success: true,
     data: {
