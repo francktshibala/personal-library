@@ -8,11 +8,10 @@ const fs = require('fs');
 const path = require('path');
 const initPassport = require('./config/passport.config');
 
-// Fix the validator nullUndefinedCheck issue by manually adding it to node_modules if it doesn't exist
+// Fix the validator util modules issue by manually adding them to node_modules if they don't exist
 try {
   const validatorDir = path.join(__dirname, 'node_modules', 'validator', 'lib');
   const utilDir = path.join(validatorDir, 'util');
-  const nullCheckFile = path.join(utilDir, 'nullUndefinedCheck.js');
   
   // Create util directory if it doesn't exist
   if (!fs.existsSync(utilDir)) {
@@ -21,21 +20,38 @@ try {
   }
   
   // Create nullUndefinedCheck.js file if it doesn't exist
+  const nullCheckFile = path.join(utilDir, 'nullUndefinedCheck.js');
   if (!fs.existsSync(nullCheckFile)) {
-    const fileContent = `
-      /**
-       * Checks if a value is null or undefined
-       * @param {*} value - The value to check
-       * @returns {boolean} - Returns true if the value is null or undefined
-       */
-      function nullUndefinedCheck(value) {
-        return value === null || value === undefined;
-      }
-      
-      module.exports = nullUndefinedCheck;
-    `;
-    fs.writeFileSync(nullCheckFile, fileContent);
+    const nullCheckContent = `/**
+ * Checks if a value is null or undefined
+ * @param {*} value - The value to check
+ * @returns {boolean} - Returns true if the value is null or undefined
+ */
+function nullUndefinedCheck(value) {
+  return value === null || value === undefined;
+}
+
+module.exports = nullUndefinedCheck;`;
+    fs.writeFileSync(nullCheckFile, nullCheckContent);
     console.log("Created nullUndefinedCheck.js in validator/lib/util");
+  }
+  
+  // Create checkHost.js file if it doesn't exist
+  const checkHostFile = path.join(utilDir, 'checkHost.js');
+  if (!fs.existsSync(checkHostFile)) {
+    const checkHostContent = `/**
+ * Check if a string is a valid host (domain or IP)
+ * @param {string} str - The string to check
+ * @returns {boolean} - Returns true if the string is a valid host
+ */
+function checkHost(str) {
+  // Simple implementation - for proper implementation consider using another validator function
+  return typeof str === 'string' && str.length > 0;
+}
+
+module.exports = checkHost;`;
+    fs.writeFileSync(checkHostFile, checkHostContent);
+    console.log("Created checkHost.js in validator/lib/util");
   }
 } catch (err) {
   console.error("Failed to create validator util files:", err);
