@@ -14,7 +14,7 @@ try {
     console.log("Created util directory in validator package");
   }
   
-  // Define all possible utility functions we might need
+  // Define all possible utility functions we might need for util directory
   const utilFunctions = {
     'nullUndefinedCheck.js': `/**
  * Checks if a value is null or undefined
@@ -134,6 +134,37 @@ module.exports = assertString;`
   
   fs.writeFileSync(indexPath, indexContent);
   console.log('Created or updated index.js in validator/lib/util');
+  
+  // Add missing modules directly in the lib directory
+  const libModules = {
+    'isULID.js': `/**
+ * Checks if a string is a valid ULID
+ * @param {string} str - The string to check
+ * @returns {boolean} - Returns true if the string is a valid ULID
+ */
+function isULID(str) {
+  const assertString = require('./util/assertString');
+  
+  try {
+    assertString(str);
+  } catch (e) {
+    return false;
+  }
+  
+  return /^[0123456789ABCDEFGHJKMNPQRSTVWXYZ]{26}$/.test(str);
+}
+
+module.exports = isULID;`
+  };
+  
+  // Create missing lib modules
+  for (const [filename, content] of Object.entries(libModules)) {
+    const filePath = path.join(validatorDir, filename);
+    if (!fs.existsSync(filePath)) {
+      fs.writeFileSync(filePath, content);
+      console.log(`Created ${filename} in validator/lib`);
+    }
+  }
   
   console.log('Validator package fix completed successfully!');
 } catch (err) {

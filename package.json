@@ -5,8 +5,10 @@
     "main": "server.js",
     "scripts": {
         "fix-validator": "node fix-validator.js",
-        "start": "node fix-validator.js && node server.js",
-        "dev": "nodemon -r ./fix-validator.js server.js"
+        "rebuild-validator": "node rebuild-validator.js",
+        "start": "node rebuild-validator.js && node server.js",
+        "dev": "nodemon -r ./fix-validator.js server.js",
+        "preinstall": "npm list validator || npm install validator@13.9.0 --no-save"
     },
     "dependencies": {
         "bcryptjs": "^2.4.3",
